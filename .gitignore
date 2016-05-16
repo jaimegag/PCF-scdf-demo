@@ -1,0 +1,24 @@
+*.class
+*.iml
+.idea
+.DS_Store
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+**/.mvn
+
+**/mvnw
+**/mvnw.cmd
+
+**/*.log
+
+**/target/apidocs
+**/target/classes/
+**/target/*-javadoc.jar
+**/target/*-sources.jar
+**/target/*.jar.original
+**/target/javadoc-bundle-options/
+**/target/maven-archiver/
+**/target/maven-status/
+**/target/surefire-reports/

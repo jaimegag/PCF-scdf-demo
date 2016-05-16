@@ -1,0 +1,195 @@
+= PCF-scdf-demo
+Based on the original repo created by Adam Zwickey https://github.com/azwickey-pivotal/scdf-raven
+
+== Prepare Env
+
+. Download PCFDev, a full, local install of Cloudfoundry here: https://network.pivotal.io/products/pcfdev
+
+. Extract PCFDev zip archive
+
+. Start PCFDev using Vagrant start scripts (start-osx or start-windows)
+
+. Log into PCFDev using CF CLI
++
+[source,bash]
+---------------------------------------------------------------------
+$ cf login -a api.local.pcfdev.io --skip-ssl-validation -u admin -p admin
+---------------------------------------------------------------------
+
+. Create the required RabbitMQ and Redis service instances
++
+[source,bash]
+---------------------------------------------------------------------
+$ cf create-service p-rabbitmq standard rabbit
+$ cf create-service p-redis shared-vm redis
+---------------------------------------------------------------------
+
+== Deploy Spring Cloud Dataflow Server
+
+. Change directories to the _scdf-server_ directory
+
+. Deploy the Spring Cloud Dataflow server to Cloudfoundry
++
+[source,bash]
+---------------------------------------------------------------------
+$ cf push
+---------------------------------------------------------------------
+
+. After the application starts up you will have dataflow running.  If you'd like, you cann access the Dataflow UI here: http://scdf-server.local.pcfdev.io/admin-ui/
+
+. By Default you will not have any Stream applications (modules) available.  We'll use the Spring Cloud Dataflow shell to load them.
+
+. Change directories to the _scdf-shell_ directory and execute the dataflow shell command, _dataflow config server_, to configure our server backend:
++
+[source,bash]
+---------------------------------------------------------------------
+$ mvn clean spring-boot:run
+---------------------------------------------------------------------
+
+. After the Shell loads we need to target our deployed dataflow server:
++
+[source,bash]
+---------------------------------------------------------------------
+  ____                              ____ _                __
+ / ___| _ __  _ __(_)_ __   __ _   / ___| | ___  _   _  __| |
+ \___ \| '_ \| '__| | '_ \ / _` | | |   | |/ _ \| | | |/ _` |
+  ___) | |_) | |  | | | | | (_| | | |___| | (_) | |_| | (_| |
+ |____/| .__/|_|  |_|_| |_|\__, |  \____|_|\___/ \__,_|\__,_|
+  ____ |_|    _          __|___/                 __________
+ |  _ \  __ _| |_ __ _  |  ___| | _____      __  \ \ \ \ \ \
+ | | | |/ _` | __/ _` | | |_  | |/ _ \ \ /\ / /   \ \ \ \ \ \
+ | |_| | (_| | || (_| | |  _| | | (_) \ V  V /    / / / / / /
+ |____/ \__,_|\__\__,_| |_|   |_|\___/ \_/\_/    /_/_/_/_/_/
+
+1.0.0.M3
+
+Welcome to the Spring Cloud Data Flow shell. For assistance hit TAB or type "help".
+
+
+server-unknown:> dataflow config server http://scdf-server.local.pcfdev.io
+Successfully targeted http://scdf-server.local.pcfdev.io
+
+---------------------------------------------------------------------
+
+.  Your shell should now be targeted correctly.  Test this by listing the current streams (which should be empty right now):
++
+[source,bash]
+---------------------------------------------------------------------
+dataflow:>stream list
+╔═══════════╤═════════════════╤══════╗
+║Stream Name│Stream Definition│Status║
+╚═══════════╧═════════════════╧══════╝
+
+---------------------------------------------------------------------
+
+. Load the Spring Cloud Dataflow modules by executing this command.  Be sure to replace $LOCAL_FILESYSTEM_PATH with your correct system path to this git project:
++
+[source,bash]
+---------------------------------------------------------------------
+dataflow:>module import --uri file://$LOCAL_FILESYSTEM_PATH/df-shell/module.properties --local TRUE
+
+Successfully registered modules: [source.tcp, task.timestamp, source.http, sink.jdbc, sink.rabbit, source.rabbit, source.ftp, sink.gpfdist, processor.transform, source.sftp, processor.filter, source.file, sink.cassandra, processor.groovy-filter, sink.router, source.trigger, processor.splitter, sink.redis, source.load-generator, sink.file, source.time, source.twitterstream, sink.tcp, source.jdbc, sink.field-value-counter, sink.hdfs, processor.bridge, processor.pmml, processor.httpclient, sink.ftp, sink.log, sink.gemfire, sink.aggregate-counter, sink.throughput, source.jms, processor.scriptable-transform, sink.counter, sink.websocket, processor.groovy-transform]
+
+---------------------------------------------------------------------
+
+. List the loaded modules using the shell:
++
+[source,bash]
+---------------------------------------------------------------------
+dataflow:>module list
+╔══════════════╤════════════════════╤═══════════════════╤═════════╗
+║    source    │     processor      │       sink        │  task   ║
+╠══════════════╪════════════════════╪═══════════════════╪═════════╣
+║file          │bridge              │aggregate-counter  │timestamp║
+║ftp           │filter              │cassandra          │         ║
+║http          │groovy-filter       │counter            │         ║
+║jdbc          │groovy-transform    │field-value-counter│         ║
+║jms           │httpclient          │file               │         ║
+║load-generator│pmml                │ftp                │         ║
+║rabbit        │scriptable-transform│gemfire            │         ║
+║sftp          │splitter            │gpfdist            │         ║
+║tcp           │transform           │hdfs               │         ║
+║time          │                    │jdbc               │         ║
+║trigger       │                    │log                │         ║
+║twitterstream │                    │rabbit             │         ║
+║              │                    │redis              │         ║
+║              │                    │router             │         ║
+║              │                    │tcp                │         ║
+║              │                    │throughput         │         ║
+║              │                    │websocket          │         ║
+╚══════════════╧════════════════════╧═══════════════════╧═════════╝
+
+---------------------------------------------------------------------
+
+== Load Custom Modules and Create a Stream using the Spring Cloud Dataflow Shell
+
+. First we'll load our custom modules that are found in the _/scdf-source_ and _/scdf-sink_ directories.  The code is already compiled and Spring Cloud Dataflow will download these from GIT over HTTP.  Execute the command in the Spring Cloud Dataflow shell:
++
+[source,bash]
+---------------------------------------------------------------------
+dataflow:>module import --uri file://$LOCAL_FILESYSTEM_PATH/scdf-shell/module_custom.properties --local TRUE
+Successfully registered modules: [sink.sink-sample, source.source-sample]
+---------------------------------------------------------------------
+
+. Create your first stream using these modules.  Execute the following command in the Spring Cloud Dataflwo shell:
++
+[source,bash]
+---------------------------------------------------------------------
+dataflow:>stream create --name test --definition "source-sample | sink-sample" --deploy
+Created and deployed new stream 'test'
+
+---------------------------------------------------------------------
+
+. In a separate terminal window check the status of the stream deployment using the CF CLI.  The app names will be prefixed with _test_, which is the name of your stream:
++
+[source,bash]
+---------------------------------------------------------------------
+$ cf apps
+Getting apps in org pcfdev-org / space pcfdev-space as admin...
+OK
+
+name                 requested state   instances   memory   disk   urls
+dataflow-server      started           1/1         1G       512M   scdf-server.local.pcfdev.io
+test-sink-sample     started           0/1         1G       1G     test-sink-sample.local.pcfdev.io
+test-source-sample   started           1/1         1G       1G     test-source-sample.local.pcfdev.io
+
+---------------------------------------------------------------------
+
+. Tail the logs of the test-sink-sample CF application:
++
+[source,bash]
+---------------------------------------------------------------------
+$ $ cf logs test-sink-sample
+  Connected, tailing logs for app test-sink-sample in org pcfdev-org / space pcfdev-space as admin...
+
+---------------------------------------------------------------------
+
+. The _test-source-sample_ application is listening at an /event endpoint.  Hit this endpoint using curl:
++
+[source,bash]
+---------------------------------------------------------------------
+$ curl -k https://test-source-sample.local.pcfdev.io/event\?msg\=I%20just%20created%20a%20data%20stream                                                                                                                                                                                                                                                     1 ↵
+
+event[I just created a data stream] placed on streaming bus%
+---------------------------------------------------------------------
+
+. Check the logs of the test-sink-sample application (they should already be tailing in one of your windows).  You'll see the message you just posted:
++
+[source,bash]
+---------------------------------------------------------------------
+$ cf logs test-sink-sample
+Connected, tailing logs for app test-sink-sample in org pcfdev-org / space pcfdev-space as admin...
+
+2016-05-06T14:54:16.94-0400 [APP/0]      OUT 2016-05-06 18:54:16.944  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       : I just created a data stream
+2016-05-06T14:54:16.94-0400 [APP/0]      OUT 2016-05-06 18:54:16.945  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_receivedRoutingKey=test.source-sample
+2016-05-06T14:54:16.94-0400 [APP/0]      OUT 2016-05-06 18:54:16.946  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_receivedExchange=test.source-sample
+2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.946  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  Header1=Sent from data microservice
+2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.957  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_deliveryTag=1
+2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.958  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_consumerQueue=test.source-sample.test
+2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.958  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_redelivered=false
+2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.958  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  id=7b426057-301f-ba4b-dd88-1d333f192b64
+2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.959  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_consumerTag=amq.ctag-sAhlVqPV9YR6F06IHXQt7w
+2016-05-06T14:54:16.96-0400 [APP/0]      OUT 2016-05-06 18:54:16.959  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  contentType=text/plain
+2016-05-06T14:54:16.96-0400 [APP/0]      OUT 2016-05-06 18:54:16.959  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  timestamp=1462560856916
+
+---------------------------------------------------------------------
