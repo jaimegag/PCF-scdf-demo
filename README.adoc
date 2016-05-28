@@ -155,6 +155,9 @@ test-sink-sample     started           0/1         1G       1G     test-sink-sam
 test-source-sample   started           1/1         1G       1G     test-source-sample.local.pcfdev.io
 
 ---------------------------------------------------------------------
+. You can also access the CF DataFlow Server Admin UI to manage and check all streams and modules deployed:
++
+http://scdf-server.local.pcfdev.io/admin-ui/index.html
 
 . Tail the logs of the test-sink-sample CF application:
 +
