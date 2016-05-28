@@ -34,12 +34,13 @@ public class SCDfMysqlSinkSampleApplication {
 	public static class SampleLoggingEndpoint {
 
 		@ServiceActivator(inputChannel = Sink.INPUT)
-		public void handleMessage(@Payload Message message, @Headers Map<String, Object> headers) {
-			LOG.info(message.getMessage());
+		public void handleMessage(@Payload String message, @Headers Map<String, Object> headers) {
+            Message msg = new Message(message);
+			LOG.info(msg.getMessage());
 			for(Map.Entry e : headers.entrySet()) {
 				LOG.info('\t' + e.getKey().toString()  + '=' + e.getValue());
 			}
-			messageRepository.save(message);
+			messageRepository.save(msg);
 		}
 
 	}

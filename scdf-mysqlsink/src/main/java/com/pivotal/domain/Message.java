@@ -27,7 +27,7 @@ public class Message implements Serializable {
     protected Message(){
     }
 
-    public Message(String name, String message) {
+    public Message(String message) {
         this.message = message;
     }
 
