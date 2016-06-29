@@ -4,17 +4,19 @@ applications:
   host: scdf-server
   memory: 1G
   instances: 1
-  path: ./target/scdf-server-0.0.1-SNAPSHOT.jar
+  #path: ./target/scdf-server-0.0.1-SNAPSHOT.jar
+  path: ./spring-cloud-dataflow-server-cloudfoundry-1.0.0.M3.jar
   buildpack: java_buildpack
   env:
-    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_API_ENDPOINT: https://api.local.pcfdev.io
-    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_ORGANIZATION: pcfdev-org
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_URL: https://api.local2.pcfdev.io
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_ORG: pcfdev-org
     SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SPACE: pcfdev-space
-    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_DOMAIN: local.pcfdev.io
-    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES: redis,rabbit
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_DOMAIN: local2.pcfdev.io
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES: redis,rabbit,mysql
     SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_USERNAME: admin
     SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_PASSWORD: admin
     SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SKIP_SSL_VALIDATION: true
   services:
   - rabbit
   - redis
+  - mysql
