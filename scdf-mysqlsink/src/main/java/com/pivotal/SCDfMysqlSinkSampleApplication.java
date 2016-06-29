@@ -36,10 +36,11 @@ public class SCDfMysqlSinkSampleApplication {
 		@ServiceActivator(inputChannel = Sink.INPUT)
 		public void handleMessage(@Payload String message, @Headers Map<String, Object> headers) {
             Message msg = new Message(message);
+            LOG.info("message repo is: " + messageRepository);
 			LOG.info(msg.getMessage());
 			for(Map.Entry e : headers.entrySet()) {
-				LOG.info('\t' + e.getKey().toString()  + '=' + e.getValue());
-			}
+                LOG.info('\t' + e.getKey().toString() + '=' + e.getValue());
+            }
 			messageRepository.save(msg);
 		}
 
