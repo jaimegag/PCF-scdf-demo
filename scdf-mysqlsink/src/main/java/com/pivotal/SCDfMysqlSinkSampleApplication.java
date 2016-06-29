@@ -27,11 +27,11 @@ public class SCDfMysqlSinkSampleApplication {
 		SpringApplication.run(SCDfMysqlSinkSampleApplication.class, args);
 	}
 
-	@Autowired
-	private static MessageRepository messageRepository;
-
-	@MessageEndpoint
+    @MessageEndpoint
 	public static class SampleLoggingEndpoint {
+
+        @Autowired
+        private MessageRepository messageRepository;
 
 		@ServiceActivator(inputChannel = Sink.INPUT)
 		public void handleMessage(@Payload String message, @Headers Map<String, Object> headers) {
