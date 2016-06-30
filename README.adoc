@@ -124,15 +124,15 @@ dataflow:>app list
 
 == Load Custom Applications and Create a Stream using the Spring Cloud Dataflow Shell
 
-. First we'll load our custom apps that are found in the _/scdf-source_ and _/scdf-sink_ directories.  The code is already compiled and Spring Cloud Dataflow will download these from GIT over HTTP.  Execute the command in the Spring Cloud Dataflow shell:
+. First we'll load our custom apps that are found in the _/scdf-source_, _/scdf-sink_ and  _/scdf-mysqlsink_ directories.  The code is already compiled and Spring Cloud Dataflow will download these from GIT over HTTP.  Execute the command in the Spring Cloud Dataflow shell:
 +
 [source,bash]
 ---------------------------------------------------------------------
 dataflow:>app import --uri file://$LOCAL_FILESYSTEM_PATH/scdf-shell/app_custom.properties --local TRUE
-Successfully registered applications: [sink.sink-sample, source.source-sample]
+Successfully registered applications: [sink.sink-sample, source.source-sample, sink.sink-mysqlsample]
 ---------------------------------------------------------------------
 
-. Create your first stream using these apps.  Execute the following command in the Spring Cloud Dataflwo shell:
+. Create your first stream using two of these apps.  Execute the following command in the Spring Cloud Dataflwo shell:
 +
 [source,bash]
 ---------------------------------------------------------------------
@@ -141,7 +141,7 @@ Created and deployed new stream 'test'
 
 ---------------------------------------------------------------------
 
-. In a separate terminal window check the status of the stream deployment using the CF CLI.  The app names will be prefixed with _test_, which is the name of your stream:
+. In a separate terminal window check the status of the stream deployment using the CF CLI.  The app names will be prefixed with _dataflow-test_, which is the name of your stream:
 +
 [source,bash]
 ---------------------------------------------------------------------
@@ -172,8 +172,7 @@ $ $ cf logs dataflow-test-sink-sample
 +
 [source,bash]
 ---------------------------------------------------------------------
-$ curl -k https://dataflow-test-source-sample.local.pcfdev.io/event\?msg\=I%20just%20created%20a%20data%20stream                                                                                                                                                                                                                                                     1 ↵
-
+$ curl -k https://dataflow-test-source-sample.local.pcfdev.io/event\?msg\=I%20just%20created%20a%20data%20stream
 event[I just created a data stream] placed on streaming bus%
 ---------------------------------------------------------------------
 
@@ -196,4 +195,58 @@ Connected, tailing logs for app dataflow-test-sink-sample in org pcfdev-org / sp
 2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	contentType=text/plain
 2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	timestamp=1467293287941
 
+---------------------------------------------------------------------
+
+== Undeploy the firt stream. This is an optional step, but if you are running this demo in PCFDev, you won't have enough resources to have both streams up and running. Execute the following command in the Spring Cloud Dataflwo shell:
++
+[source,bash]
+---------------------------------------------------------------------
+dataflow:>stream undeploy --name test
+Un-deployed stream 'test'
+
+---------------------------------------------------------------------
+
+== Create the new Stream that stores the messages in a MySQL database
+
+. We already loaded the all our custom applicatins earlier in this demo. Now we are going to use the  _/scdf-source_ and _/scdf-mysqlsink_ directories:
+
+. Create the second stream executing the following command in the Spring Cloud Dataflwo shell:
++
+[source,bash]
+---------------------------------------------------------------------
+dataflow:>stream create --name testmysql --definition "source-sample | sink-mysqlsample" --deploy
+Created and deployed new stream 'testmysql'
+
+---------------------------------------------------------------------
+
+. In a separate terminal window check the status of the stream deployment using the CF CLI.  This time the app names will be prefixed with _dataflow-testmysql_, which is the name of your stream:
++
+[source,bash]
+---------------------------------------------------------------------
+$ cf apps
+Getting apps in org pcfdev-org / space pcfdev-space as admin...
+OK
+
+name                             requested state   instances   memory   disk   urls
+scdf-server                      started           1/1         1G       512M   scdf-server.local.pcfdev.io
+dataflow-testmysql-sink-sample   started           1/1         1G       1G     dataflow-testmysql-sink-sample.local.pcfdev.io
+dataflow-testmysql-source-sample started           1/1         1G       1G     dataflow-testmysql-source-sample.local.pcfdev.io
+
+---------------------------------------------------------------------
+
+. Tail the logs of the test-sink-sample CF application:
++
+[source,bash]
+---------------------------------------------------------------------
+$ $ cf logs dataflow-test-sink-sample
+  Connected, tailing logs for app dataflow-test-sink-sample in org pcfdev-org / space pcfdev-space as admin...
+
+---------------------------------------------------------------------
+
+. As with the previous stream, we will create a message hitting the endpoint of the Source application:
++
+[source,bash]
+---------------------------------------------------------------------
+$ curl -k https://dataflow-test-source-sample.local.pcfdev.io/event\?msg\=I%20just%20created%20a%20data%20stream%20to%20write%20in%20a%20database
+event[I just created a data stream to write in a database] placed on streaming bus
 ---------------------------------------------------------------------
