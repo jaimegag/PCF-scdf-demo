@@ -197,7 +197,7 @@ Connected, tailing logs for app dataflow-test-sink-sample in org pcfdev-org / sp
 
 ---------------------------------------------------------------------
 
-== Undeploy the firt stream. This is an optional step, but if you are running this demo in PCFDev, you won't have enough resources to have both streams up and running. Execute the following command in the Spring Cloud Dataflwo shell:
+. Undeploy the firt stream. This is an optional step, but if you are running this demo in PCFDev, you won't have enough resources to have both streams up and running. Execute the following command in the Spring Cloud Dataflwo shell:
 +
 [source,bash]
 ---------------------------------------------------------------------
