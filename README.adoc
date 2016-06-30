@@ -208,6 +208,15 @@ Un-deployed stream 'test'
 
 == Create the new Stream that stores the messages in a MySQL database
 
+. Undeploy the firt stream. This is an optional step, but if you are running this demo in PCFDev, you won't have enough resources to have both streams up and running. Execute the following command in the Spring Cloud Dataflwo shell:
++
+[source,bash]
+---------------------------------------------------------------------
+dataflow:>stream undeploy --name test
+Un-deployed stream 'test'
+
+---------------------------------------------------------------------
+
 . We already loaded the all our custom applicatins earlier in this demo. Now we are going to use the  _/scdf-source_ and _/scdf-mysqlsink_ directories:
 
 . Create the second stream executing the following command in the Spring Cloud Dataflwo shell:
