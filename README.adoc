@@ -217,7 +217,7 @@ Un-deployed stream 'test'
 
 ---------------------------------------------------------------------
 
-. We already loaded the all our custom applicatins earlier in this demo. Now we are going to use the  _/scdf-source_ and _/scdf-mysqlsink_ directories:
+. We already loaded the all our custom applicatins earlier in this demo. Now we are going to use the  _/scdf-source_ and _/scdf-mysqlsink_ directories.
 
 . Create the second stream executing the following command in the Spring Cloud Dataflwo shell:
 +
@@ -236,10 +236,25 @@ $ cf apps
 Getting apps in org pcfdev-org / space pcfdev-space as admin...
 OK
 
-name                             requested state   instances   memory   disk   urls
-scdf-server                      started           1/1         1G       512M   scdf-server.local.pcfdev.io
-dataflow-testmysql-sink-sample   started           1/1         1G       1G     dataflow-testmysql-sink-sample.local.pcfdev.io
-dataflow-testmysql-source-sample started           1/1         1G       1G     dataflow-testmysql-source-sample.local.pcfdev.io
+name                                 requested state   instances   memory   disk   urls
+scdf-server                          started           1/1         1G       512M   scdf-server.local.pcfdev.io
+dataflow-testmysql-sink-mysqlsample  started           1/1         1G       1G     dataflow-testmysql-sink-mysqlsample.local.pcfdev.io
+dataflow-testmysql-source-sample     started           1/1         1G       1G     dataflow-testmysql-source-sample.local.pcfdev.io
+
+---------------------------------------------------------------------
+
+. Confirm that the _dataflow-testmysql-sink-mysqlsample_ application is bound to the _mysql_ service. This binding happens automatically thanks to the environment variables that we initially setup for the _scdf_server_. Run this command:
++
+[source,bash]
+---------------------------------------------------------------------
+$ cf services
+Getting services in org pcfdev-org / space pcfdev-space as admin...
+OK
+
+name     service      plan        bound apps                                                                                       last operation
+rabbit   p-rabbitmq   standard    scdf-server, dataflow-testmysql-sink-mysqlsample, dataflow-testmysql-source-sample               create succeeded
+redis    p-redis      shared-vm   scdf-server, dataflow-testmysql-sink-mysqlsample, dataflow-testmysql-source-sample               create succeeded
+mysql    p-mysql      512mb       scdf-server, dataflow-testmysql-sink-mysqlsample, dataflow-testmysql-source-sample               create succeeded
 
 ---------------------------------------------------------------------
 
@@ -259,3 +274,7 @@ $ $ cf logs dataflow-test-sink-sample
 $ curl -k https://dataflow-test-source-sample.local.pcfdev.io/event\?msg\=I%20just%20created%20a%20data%20stream%20to%20write%20in%20a%20database
 event[I just created a data stream to write in a database] placed on streaming bus
 ---------------------------------------------------------------------
+
+. Now we can check the logs of the dataflow-testmysql-sink-sample application (they should already be tailing in one of your windows).  You'll see a similar message to the one we saw for the first stream.
+
+. What's new now is that the message was inserted into the database.
