@@ -6,9 +6,7 @@ Based on the original repo created by Adam Zwickey https://github.com/azwickey-p
 
 . Download PCFDev, a full, local install of Cloudfoundry here: https://network.pivotal.io/products/pcfdev
 
-. Extract PCFDev zip archive
-
-. Start PCFDev using Vagrant start scripts (start-osx or start-windows)
+. Install PCFDev following the documentation instructions here: http://docs.pivotal.io/pcf-dev/index.html
 
 . Log into PCFDev using CF CLI
 +
@@ -17,11 +15,12 @@ Based on the original repo created by Adam Zwickey https://github.com/azwickey-p
 $ cf login -a api.local.pcfdev.io --skip-ssl-validation -u admin -p admin
 ---------------------------------------------------------------------
 
-. Create the required RabbitMQ and Redis service instances
+. Create the required RabbitMQ, MySQL and Redis service instances
 +
 [source,bash]
 ---------------------------------------------------------------------
 $ cf create-service p-rabbitmq standard rabbit
+$ cf create-service p-mysql 512mb mysql
 $ cf create-service p-redis shared-vm redis
 ---------------------------------------------------------------------
 
@@ -29,18 +28,19 @@ $ cf create-service p-redis shared-vm redis
 
 . Change directories to the _scdf-server_ directory
 
-. Deploy the Spring Cloud Dataflow server to Cloudfoundry
+. Deploy the Spring Cloud Dataflow server to Cloudfoundry.
+(Note that there is no need to build the scdf-server as the manifest is using a pre-built jar that ihas been conveniently place in the root folder of the scdf-server)
 +
 [source,bash]
 ---------------------------------------------------------------------
 $ cf push
 ---------------------------------------------------------------------
 
-. After the application starts up you will have dataflow running.  If you'd like, you cann access the Dataflow UI here: http://scdf-server.local.pcfdev.io/admin-ui/
+. After the application starts up you will have dataflow running.  If you'd like, you cann access the Dataflow UI here: http://scdf-server.local.pcfdev.io/dashboard
 
 . By Default you will not have any Stream applications available.  We'll use the Spring Cloud Dataflow shell to load them.
 
-. Change directories to the _scdf-shell_ directory and execute the dataflow shell command, _dataflow config server_, to configure our server backend:
+. Change directories to the _scdf-shell_ directory and run the SCDF shell:
 +
 [source,bash]
 ---------------------------------------------------------------------
@@ -149,51 +149,51 @@ $ cf apps
 Getting apps in org pcfdev-org / space pcfdev-space as admin...
 OK
 
-name                 requested state   instances   memory   disk   urls
-dataflow-server      started           1/1         1G       512M   scdf-server.local.pcfdev.io
-test-sink-sample     started           0/1         1G       1G     test-sink-sample.local.pcfdev.io
-test-source-sample   started           1/1         1G       1G     test-source-sample.local.pcfdev.io
+name                             requested state   instances   memory   disk   urls
+scdf-server                      started           1/1         1G       512M   scdf-server.local.pcfdev.io
+dataflow-test-sink-sample        started           1/1         1G       1G     dataflow-test-sink-sample.local.pcfdev.io
+dataflow-test-source-sample      started           1/1         1G       1G     dataflow-test-source-sample.local.pcfdev.io
 
 ---------------------------------------------------------------------
-. You can also access the CF DataFlow Server Admin UI to manage and check all streams and apps deployed:
+. You can also access the CF DataFlow Server Dashboard to create, deploy and manage all streams and apps from the browser:
 +
-http://scdf-server.local.pcfdev.io/admin-ui/index.html
+http://scdf-server.local.pcfdev.io/dashboard
 
 . Tail the logs of the test-sink-sample CF application:
 +
 [source,bash]
 ---------------------------------------------------------------------
-$ $ cf logs test-sink-sample
-  Connected, tailing logs for app test-sink-sample in org pcfdev-org / space pcfdev-space as admin...
+$ $ cf logs dataflow-test-sink-sample
+  Connected, tailing logs for app dataflow-test-sink-sample in org pcfdev-org / space pcfdev-space as admin...
 
 ---------------------------------------------------------------------
 
-. The _test-source-sample_ application is listening at an /event endpoint.  Hit this endpoint using curl:
+. The _dataflow-test-source-sample_ application is listening at an /event endpoint.  Hit this endpoint using curl:
 +
 [source,bash]
 ---------------------------------------------------------------------
-$ curl -k https://test-source-sample.local.pcfdev.io/event\?msg\=I%20just%20created%20a%20data%20stream                                                                                                                                                                                                                                                     1 ↵
+$ curl -k https://dataflow-test-source-sample.local.pcfdev.io/event\?msg\=I%20just%20created%20a%20data%20stream                                                                                                                                                                                                                                                     1 ↵
 
 event[I just created a data stream] placed on streaming bus%
 ---------------------------------------------------------------------
 
-. Check the logs of the test-sink-sample application (they should already be tailing in one of your windows).  You'll see the message you just posted:
+. Check the logs of the dataflow-test-sink-sample application (they should already be tailing in one of your windows).  You'll see the message you just posted:
 +
 [source,bash]
 ---------------------------------------------------------------------
-$ cf logs test-sink-sample
-Connected, tailing logs for app test-sink-sample in org pcfdev-org / space pcfdev-space as admin...
+$ cf logs dataflow-test-sink-sample
+Connected, tailing logs for app dataflow-test-sink-sample in org pcfdev-org / space pcfdev-space as admin...
 
-2016-05-06T14:54:16.94-0400 [APP/0]      OUT 2016-05-06 18:54:16.944  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       : I just created a data stream
-2016-05-06T14:54:16.94-0400 [APP/0]      OUT 2016-05-06 18:54:16.945  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_receivedRoutingKey=test.source-sample
-2016-05-06T14:54:16.94-0400 [APP/0]      OUT 2016-05-06 18:54:16.946  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_receivedExchange=test.source-sample
-2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.946  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  Header1=Sent from data microservice
-2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.957  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_deliveryTag=1
-2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.958  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_consumerQueue=test.source-sample.test
-2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.958  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_redelivered=false
-2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.958  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  id=7b426057-301f-ba4b-dd88-1d333f192b64
-2016-05-06T14:54:16.95-0400 [APP/0]      OUT 2016-05-06 18:54:16.959  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  amqp_consumerTag=amq.ctag-sAhlVqPV9YR6F06IHXQt7w
-2016-05-06T14:54:16.96-0400 [APP/0]      OUT 2016-05-06 18:54:16.959  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  contentType=text/plain
-2016-05-06T14:54:16.96-0400 [APP/0]      OUT 2016-05-06 18:54:16.959  INFO 15 --- [e-sample.test-1] c.p.c.scdf.DfSinkSampleApplication       :  timestamp=1462560856916
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : I just created a data stream
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	amqp_receivedRoutingKey=test.source-sample
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	amqp_receivedExchange=test.source-sample
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	Header1=Sent from data microservice
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	amqp_deliveryTag=4
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	amqp_consumerQueue=test.source-sample.test
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	amqp_redelivered=false
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	id=ef984117-a9e9-bdcf-5810-5be8afc0bb7d
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	amqp_consumerTag=amq.ctag-_RxrssJUrMq6LsDvGAztnQ
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	contentType=text/plain
+2016-06-30T09:28:07.94-0400 [APP/0]      OUT 2016-06-30 13:28:07.942  INFO 14 --- [e-sample.test-1] c.p.SCDfMysqlSinkSampleApplication       : 	timestamp=1467293287941
 
 ---------------------------------------------------------------------
