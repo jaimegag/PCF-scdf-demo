@@ -159,7 +159,7 @@ dataflow-test-source-sample      started           1/1         1G       1G     d
 +
 http://scdf-server.local.pcfdev.io/dashboard
 
-. Tail the logs of the test-sink-sample CF application:
+. Tail the logs of the dataflow-test-sink-sample CF application:
 +
 [source,bash]
 ---------------------------------------------------------------------
@@ -258,12 +258,12 @@ mysql    p-mysql      512mb       scdf-server, dataflow-testmysql-sink-mysqlsamp
 
 ---------------------------------------------------------------------
 
-. Tail the logs of the test-sink-sample CF application:
+. Tail the logs of the dataflow-testmysql-sink-mysqlsample CF application:
 +
 [source,bash]
 ---------------------------------------------------------------------
-$ $ cf logs dataflow-test-sink-sample
-  Connected, tailing logs for app dataflow-test-sink-sample in org pcfdev-org / space pcfdev-space as admin...
+$ $ cf logs dataflow-testmysql-sink-mysqlsample
+  Connected, tailing logs for app dataflow-testmysql-sink-mysqlsample in org pcfdev-org / space pcfdev-space as admin...
 
 ---------------------------------------------------------------------
 
@@ -271,10 +271,43 @@ $ $ cf logs dataflow-test-sink-sample
 +
 [source,bash]
 ---------------------------------------------------------------------
-$ curl -k https://dataflow-test-source-sample.local.pcfdev.io/event\?msg\=I%20just%20created%20a%20data%20stream%20to%20write%20in%20a%20database
+$ curl -k https://dataflow-testmysql-source-sample.local.pcfdev.io/event\?msg\=I%20just%20created%20a%20data%20stream%20to%20write%20in%20a%20database
 event[I just created a data stream to write in a database] placed on streaming bus
 ---------------------------------------------------------------------
 
 . Now we can check the logs of the dataflow-testmysql-sink-sample application (they should already be tailing in one of your windows).  You'll see a similar message to the one we saw for the first stream.
 
-. What's new now is that the message was inserted into the database.
+. Finally we can confirm that the messages were written in the MySQL dataase. To do this you can access it with the _mysql_ command. (Notice the $MYSQL_USER and $MYSQL_DATABASE entries and replace them with the credentials that you can get from the mysql serivce in Apps Manager):
++
+[source,bash]
+---------------------------------------------------------------------
+
+mysql -h mysql.local.pcfdev.io -u $MYSQL_USER -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 288
+Server version: 5.5.5-10.0.23-MariaDB-wsrep Source distribution, wsrep_25.11.r21a2415
+
+Copyright (c) 2000, 2015, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> use $MYSQL_DATABASE
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> select * from message;
++----+-----------------------------------------------------+
+| id | message                                             |
++----+-----------------------------------------------------+
+|  1 | I just created a data stream to write in a database |
++----+-----------------------------------------------------+
+1 rows in set (0.00 sec)
+
+mysql>
+---------------------------------------------------------------------
