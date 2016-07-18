@@ -22,3 +22,5 @@
 **/target/maven-archiver/
 **/target/maven-status/
 **/target/surefire-reports/
+scdf-shell/target/
+scdf-server/target/
