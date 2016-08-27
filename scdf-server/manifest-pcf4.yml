@@ -1,0 +1,23 @@
+---
+applications:
+- name: scdf-server
+  host: scdf-server
+  memory: 1G
+  instances: 1
+  #path: ./target/scdf-server-0.0.1-SNAPSHOT.jar
+  path: ./spring-cloud-dataflow-server-cloudfoundry-1.0.0.RC1.jar
+  buildpack: java_buildpack_offline
+  env:
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_URL: https://api.pcf4.cloud.fe.pivotal.io
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_ORG: student5-org
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SPACE: development
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_DOMAIN: pcf4.cloud.fe.pivotal.io
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SERVICES: redis,rabbit,mysql
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_USERNAME: instructor
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_PASSWORD: ArK4vsN4
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SKIP_SSL_VALIDATION: true
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_ENABLE_RANDOM_APP_NAME_PREFIX: false
+  services:
+  - rabbit
+  - redis
+  - mysql
