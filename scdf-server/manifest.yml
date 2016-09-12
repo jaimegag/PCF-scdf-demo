@@ -8,10 +8,10 @@ applications:
   path: ./spring-cloud-dataflow-server-cloudfoundry-1.0.0.RELEASE.jar
   buildpack: java_buildpack
   env:
-    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_URL: https://api.local2.pcfdev.io
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_URL: https://api.local.pcfdev.io
     SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_ORG: pcfdev-org
     SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SPACE: pcfdev-space
-    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_DOMAIN: local2.pcfdev.io
+    SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_DOMAIN: local.pcfdev.io
     SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_STREAM_SERVICES: rabbit,mysql
     SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_USERNAME: admin
     SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_PASSWORD: admin
@@ -20,5 +20,3 @@ applications:
     MAVEN_REMOTE_REPOSITORIES_REPO1_URL: https://repo.spring.io/libs-snapshot
   services:
   - redis
-  - mysql
-
