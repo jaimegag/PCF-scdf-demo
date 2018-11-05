@@ -1,3 +1,5 @@
+**This repository is now obsolete. For a more up to date demo on SCDF please check https://github.com/jaimegag/scdf-zone**
+
 = PCF-scdf-demo
 
 Based on the original repo created by Adam Zwickey https://github.com/azwickey-pivotal/scdf-raven
